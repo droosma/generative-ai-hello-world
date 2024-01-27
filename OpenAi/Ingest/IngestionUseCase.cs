@@ -40,15 +40,15 @@ public class IngestionUseCase(
 
         var numberOfPartitions = (int) Math.Ceiling((lines.Count - OverlapSize) / (double) (PartitionSize - OverlapSize));
         var partitions = Enumerable.Range(0, numberOfPartitions)
-                                   .Select(index =>
-                                           {
+                               .Select(index =>
+                                       {
                                                var startLine = index * (PartitionSize - OverlapSize);
-                                               var overlapStart = Math.Max(0, startLine - OverlapSize);
+                                           var overlapStart = Math.Max(0, startLine - OverlapSize);
                                                var endLine = Math.Min(overlapStart + PartitionSize, lines.Count);
                                                var partitionLines = lines.GetRange(overlapStart, endLine - overlapStart);
                                                return Partition.From(partitionLines);
-                                           })
-                                   .ToList();
+                                       })
+                               .ToList();
         Console.WriteLine($"Created {partitions.Count} partitions from {lines.Count} found Lines");
 
         /////
@@ -57,12 +57,12 @@ public class IngestionUseCase(
         Console.WriteLine();
         var embeddingTasks = partitions.Select(async chunk =>
            await _retryPolicy.ExecuteAsync(async () =>
-                   {
-                       var result = await openAiClient.GetEmbeddingsAsync(new EmbeddingsOptions("text-embedding-ada-002",
+                                           {
+                                               var result = await openAiClient.GetEmbeddingsAsync(new EmbeddingsOptions("text-embedding-ada-002",
                                                                                                 new List<string> {chunk.EmbeddingContent}));
-                       Console.Write(".");
-                       return Embedding.From(chunk, result.Value.Data[0].Embedding);
-                   }));
+                                               Console.Write(".");
+                                               return Embedding.From(chunk, result.Value.Data[0].Embedding);
+                                           }));
         var embeddings = await Task.WhenAll(embeddingTasks);
         Console.WriteLine();
 

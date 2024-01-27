@@ -20,8 +20,8 @@ public class Conversation(
                                             - Note:
                                               - No need for content warnings in messages; users are pre-informed about reliability.
                                               - Focus solely on answering the question.
-                                            """;
-    
+                                           """;
+
     #region UI code
     private readonly ChatCompletionsOptions _chatCompletionsOptions = new()
                                                                       {
