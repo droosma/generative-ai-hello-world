@@ -1,0 +1,195 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@using Microsoft.AspNetCore.SignalR.Client
+@implements IAsyncDisposable
+
+<PageTitle>Search</PageTitle>
+
+<div class="container-fluid py-5">
+    <div class="row d-flex justify-content-center">
+        <div class="col">
+
+            <div class="card" id="chat2">
+                <div class="card-header d-flex justify-content-between align-items-center p-3">
+                    <h5 class="mb-0"> Chat @(IsConnected ? "😎" : "😱")</h5>
+                    <button type="button"
+                            class="btn btn-primary btn-sm" data-mdb-ripple-color="dark"
+                            @onclick="ResetChat">
+                        Reset chat
+                    </button>
+                </div>
+                <div class="card-body" id="chatWindow" data-mdb-perfect-scrollbar="true" style="position: relative; height: 400px; max-height: 400px; overflow-y: auto;">
+
+                    @foreach (var chatMessage in _chatMessages)
+                    {
+                        @if (chatMessage.Role == "Assistant")
+                        {
+                            <div class="d-flex flex-row justify-content-end mb-4 pt-1">
+                                <div>
+                                    <p class="small p-2 me-3 mb-1 text-white rounded-3 bg-primary">
+                                        @chatMessage.MessageMarkup
+
+                                        @if (chatMessage.References?.Any() ?? false)
+                                        {
+                                        <p>
+                                            <table class="table table-sm table-borderless">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Reference</th>
+                                                        <th>File</th>
+                                                        <th>Version</th>
+                                                        <th>Start Page</th>
+                                                        <th>Start Line</th>
+                                                        <th>End Page</th>
+                                                        <th>End Line</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                        @foreach (var (index, reference) in chatMessage.References)
+                                                        {
+                                                        <tr>
+                                                            <td>@index</td>
+                                                            <td>@reference.FileName</td>
+                                                            <td>@reference.Version</td>
+                                                            <td>@reference.StartPage</td>
+                                                            <td>@reference.StartLine</td>
+                                                            <td>@reference.EndPage</td>
+                                                            <td>@reference.EndLine</td>
+                                                        </tr>
+                                                        }
+                                                </tbody>
+                                            </table>
+
+                                        </p>
+                                        }
+                                    </p>
+                                </div>
+                                <img src="/images/llm.webp"
+                                     alt="avatar 1" style="width: 45px; height: 100%;">
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="d-flex flex-row justify-content-start">
+                                <img src="/images/me.webp"
+                                     alt="avatar 1" style="width: 45px; height: 100%;">
+                                <div>
+                                    <p class="small p-2 ms-3 mb-1 rounded-3"
+                                       style="background-color: #f5f6f7;">
+                                        @chatMessage.Message
+                                    </p>
+                                </div>
+                            </div>
+                        }
+                    }
+
+                    @if (_waiting == true)
+                    {
+                        <div class="d-flex flex-row justify-content-end mb-4 pt-1">
+                            <div>
+                                <p class="small p-2 me-3 mb-1 text-white rounded-3 bg-primary">
+                                    <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                                </p>
+                            </div>
+                            <img src="/images/llm.webp"
+                                 alt="avatar 1" style="width: 45px; height: 100%;">
+                        </div>
+                    }
+                </div>
+                <div class="card-footer text-muted d-flex justify-content-start align-items-center p-3">
+                    <img src="/images/me.webp"
+                         alt="avatar 3" style="width: 40px; height: 100%;">
+
+                    <form @onsubmit="SendMessage" style="flex-grow: 1; display: flex; align-items: center;">
+                        <input class="form-control form-control-lg" id="exampleFormControlInput1"
+                               placeholder="Type message"
+                               @bind="userMessage"
+                               autofocus
+                               style="flex-grow: 1; margin-right: 0.5rem;">
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <button type="button" @onclick="SendQuestion" class="btn btn-primary">
+        <i class="fas fa-paper-plane"></i> Question
+    </button>
+</div>
+
+@code {
+    private HubConnection? hubConnection;
+    private string? userMessage;
+    private bool? _waiting;
+
+    protected override Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+                        .WithUrl(Navigation.ToAbsoluteUri(ChatHub.HubUrl))
+                        .Build();
+
+        hubConnection.On<IEnumerable<ChatMessage>>(ChatHub.ClientReceiveChatMessages,
+                                                   async chatMessages =>
+                                                   {
+                                                       _chatMessages = chatMessages.ToList();
+                                                       _waiting = false;
+
+                                                       await InvokeAsync(StateHasChanged);
+                                                       await ScrollToBottom();
+                                                   });
+        return hubConnection.StartAsync();
+    }
+
+    private Task ResetChat() => hubConnection?.SendAsync(nameof(ChatHub.ResetHistory)) ?? Task.CompletedTask;
+    private bool IsConnected => hubConnection?.State == HubConnectionState.Connected;
+
+    private IList<ChatMessage> _chatMessages = new List<ChatMessage>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ScrollToBottom();
+        }
+    }
+
+    private async Task SendMessage()
+    {
+        if (!string.IsNullOrWhiteSpace(userMessage))
+        {
+            _waiting = true;
+            var messageToSend = userMessage;
+            userMessage = string.Empty;
+
+            _chatMessages.Add(new ChatMessage("User", messageToSend));
+
+            await hubConnection!.SendAsync(ChatHub.SendNewMessageName, messageToSend);
+
+            await InvokeAsync(() =>
+                              {
+                                  userMessage = string.Empty;
+                                  StateHasChanged();
+                              });
+
+            await ScrollToBottom();
+        }
+    }
+
+    private Task SendQuestion()
+    {
+        userMessage = "Can you tell me about the side effects of Enbrel, considering that I am immunocompromised?";
+        return SendMessage();
+    }
+
+    private ValueTask ScrollToBottom() => JSRuntime.InvokeVoidAsync("scrollToBottom", "chatWindow");
+    public ValueTask DisposeAsync() => hubConnection?.DisposeAsync() ?? ValueTask.CompletedTask;
+}

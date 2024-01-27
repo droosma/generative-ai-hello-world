@@ -10,38 +10,58 @@ If you already have the raw text, you can bypass this requirement.
 
 ## How to run
 
-This project uses Redis as its vector database, so you need a running Redis instance. A simple way to set this up is by running the following command in a terminal:
+This project uses Postgresql as its vector database, so you need a running Postgresql instance. A simple way to set this up is by running the following command in a terminal:
 
 ```powershell
-docker run --rm -it -p 6379:6379 -p 8001:8001 redis/redis-stack:latest
+docker-compose up -d
 ```
 
-To execute the workflow successfully, configure the correct appsettings.json.
+## OpenAi.Console
+
+To execute the workflow successfully, configure the correct `appsettings.json`
 
 ```JSON
 {
-    "OpenAI": {
-        "key": "KEY 1 or KEY 2 found Resource Management > Keys and Endpoint",
-        /// To use OpenAI set Endpoint to an empty string
-        "endpoint": "https://[The-Name-You-Gave-Your-Azure-OpenAI-Resource].openai.azure.com/"
+    "OpenAISettings": {
+        "EndPoint": "https://[The-Name-You-Gave-Your-Azure-OpenAI-Resource].openai.azure.com/"
     },
-    "FormRecognizer": {
-        "key": "KEY 1 or KEY 2 found Resource Management > Keys and Endpoint",
-        "endpoint": "https://[ths-cognative-searvices-name].cognitiveservices.azure.com/"
-    },
-    "RedisPersistence": {
-        "ConnectionString": "localhost:6379",
-        "Index": "documents"
+    "DocumentAnalysisSettings": {
+        "EndPoint": "https://[ths-cognative-searvices-name].cognitiveservices.azure.com/"
     }
 }
 ```
 
-## Example run flow
+And add the following to your `secrets.json` (more info here: [app-secrets](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-8.0))
 
-0. Configure `appsettings.json` & Start Redis
-1. Navigate to `.\OpenAi.Console`
-2. Run `dotnet run`
-3. Wait for the application to start
-4. enter: `createindex` to create the vector index on Redis
-5. enter: `ingest` this will ingest the PDF and store the vector in Redis
-6. enter: `search` and enter: `What are the side effects of etanercept`
+```JSON
+    "OpenAISettings": {
+        "Key": "<YOUR KEY>"
+    },
+    "DocumentAnalysisSettings": {
+        "Key": "<YOUR KEY>"
+    },
+    "ConnectionStrings": {
+        "Postgresql": "Host=localhost;Database=postgres;Username=user;Password=password;Pooling=true;MinPoolSize=1;MaxPoolSize=100;"
+    }
+```
+
+## OpenAi.Web
+
+```JSON
+{
+    "OpenAISettings": {
+        "EndPoint": "https://[The-Name-You-Gave-Your-Azure-OpenAI-Resource].openai.azure.com/"
+    }
+}
+```
+
+And add the following to your `secrets.json` (more info here: [app-secrets](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-8.0))
+
+```JSON
+    "OpenAISettings": {
+        "Key": "<YOUR KEY>"
+    },
+    "ConnectionStrings": {
+        "Postgresql": "Host=localhost;Database=postgres;Username=user;Password=password;Pooling=true;MinPoolSize=1;MaxPoolSize=100;"
+    }
+```

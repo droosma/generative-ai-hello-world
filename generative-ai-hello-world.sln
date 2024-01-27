@@ -5,6 +5,10 @@ VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenAi.Console", "OpenAi.Console\OpenAi.Console.csproj", "{A4A31692-BBB2-46F6-AA66-22AD962B21C4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenAi", "OpenAi\OpenAi.csproj", "{142F97A2-48E1-4E99-963D-B78BE02502DD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenAi.Web", "OpenAi.Web\OpenAi.Web.csproj", "{4ADA1335-C6E2-4666-9AD3-38DD052E9F5F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{A4A31692-BBB2-46F6-AA66-22AD962B21C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A4A31692-BBB2-46F6-AA66-22AD962B21C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A4A31692-BBB2-46F6-AA66-22AD962B21C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{142F97A2-48E1-4E99-963D-B78BE02502DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{142F97A2-48E1-4E99-963D-B78BE02502DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{142F97A2-48E1-4E99-963D-B78BE02502DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{142F97A2-48E1-4E99-963D-B78BE02502DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4ADA1335-C6E2-4666-9AD3-38DD052E9F5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4ADA1335-C6E2-4666-9AD3-38DD052E9F5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4ADA1335-C6E2-4666-9AD3-38DD052E9F5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4ADA1335-C6E2-4666-9AD3-38DD052E9F5F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
