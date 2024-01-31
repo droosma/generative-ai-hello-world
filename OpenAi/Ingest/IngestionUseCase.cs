@@ -19,7 +19,7 @@ public class IngestionUseCase(
     public async Task Execute()
     {
         /////
-        Console.WriteLine("get the some input");
+        Console.WriteLine("get the input");
         /////
         var stream = await fileSystem.Load("enbrel-epar-product-information_en.pdf");
 
